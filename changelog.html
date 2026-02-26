@@ -232,12 +232,15 @@ onboarding-ready configs.</li>
 <li>Memory tool operations and compaction memory writes are now agent-scoped, preventing cross-agent memory leakage during search/read/write flows</li>
 <li>Default sandbox package set now includes <code>golang-go</code>, and pre-built sandbox images install the latest <code>gog</code> (<code>steipete/gogcli</code>) as <code>gog</code> and <code>gogcli</code></li>
 <li>Sandbox config now supports <code>/home/sandbox</code> persistence strategies (<code>off</code>, <code>session</code>, <code>shared</code>), with <code>shared</code> as the default and a shared host folder mounted from <code>data_dir()/sandbox/home/shared</code></li>
+<li>Settings → Sandboxes now includes shared-home controls (enabled + folder path), and sandbox config supports <code>tools.exec.sandbox.shared_home_dir</code> for custom shared persistence location</li>
 </ul>
 <h3 id="deprecated"><a class="header" href="#deprecated">Deprecated</a></h3>
 <h3 id="removed"><a class="header" href="#removed">Removed</a></h3>
 <h3 id="fixed"><a class="header" href="#fixed">Fixed</a></h3>
 <ul>
 <li>Channel image delivery now parses the actual MIME type from data URIs instead of hardcoding <code>image/png</code></li>
+<li>Docker image now installs Docker CLI from Docker’s official Debian repository (<code>docker-ce-cli</code>), avoiding API mismatches with newer host daemons during sandbox builds/exec</li>
+<li>Chat UI now shows a first-run sandbox preparation status message before container/image setup begins, so startup delays are visible while sandbox resources are created</li>
 <li>OpenAI TTS and Whisper STT now correctly reuse OpenAI credentials from
 voice config, <code>OPENAI_API_KEY</code>, or the LLM OpenAI provider config.</li>
 <li>Voice provider parsing now accepts <code>openai-tts</code> and <code>google-tts</code> aliases

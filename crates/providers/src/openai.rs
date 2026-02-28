@@ -32,6 +32,7 @@ pub struct OpenAiProvider {
     provider_name: String,
     client: &'static reqwest::Client,
     stream_transport: ProviderStreamTransport,
+    tool_mode_override: Option<moltis_config::ToolMode>,
 }
 
 const OPENAI_MODELS_ENDPOINT_PATH: &str = "/models";
@@ -422,6 +423,7 @@ impl OpenAiProvider {
             provider_name: "openai".into(),
             client: crate::shared_http_client(),
             stream_transport: ProviderStreamTransport::Sse,
+            tool_mode_override: None,
         }
     }
 
@@ -438,12 +440,19 @@ impl OpenAiProvider {
             provider_name,
             client: crate::shared_http_client(),
             stream_transport: ProviderStreamTransport::Sse,
+            tool_mode_override: None,
         }
     }
 
     #[must_use]
     pub fn with_stream_transport(mut self, stream_transport: ProviderStreamTransport) -> Self {
         self.stream_transport = stream_transport;
+        self
+    }
+
+    #[must_use]
+    pub fn with_tool_mode(mut self, mode: moltis_config::ToolMode) -> Self {
+        self.tool_mode_override = Some(mode);
         self
     }
 
@@ -979,7 +988,17 @@ impl LlmProvider for OpenAiProvider {
     }
 
     fn supports_tools(&self) -> bool {
-        super::supports_tools_for_model(&self.model)
+        match self.tool_mode_override {
+            Some(moltis_config::ToolMode::Native) => true,
+            Some(moltis_config::ToolMode::Text | moltis_config::ToolMode::Off) => false,
+            Some(moltis_config::ToolMode::Auto) | None => {
+                super::supports_tools_for_model(&self.model)
+            },
+        }
+    }
+
+    fn tool_mode(&self) -> Option<moltis_config::ToolMode> {
+        self.tool_mode_override
     }
 
     fn context_window(&self) -> u32 {

@@ -18,7 +18,7 @@ env:
 jobs:
   zizmor:
     name: Workflow Security
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: read
     steps:
@@ -33,7 +33,7 @@ jobs:
 
   biome:
     needs: zizmor
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Biome
     permissions:
       contents: read
@@ -49,7 +49,7 @@ jobs:
 
   fmt:
     needs: zizmor
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Format
     permissions:
       contents: read
@@ -105,7 +105,7 @@ jobs:
 
   test:
     needs: [fmt, biome]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Test
     permissions:
       contents: read
@@ -124,7 +124,7 @@ jobs:
   e2e:
     name: E2E Tests
     needs: [fmt, biome]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: read
     steps:
@@ -177,7 +177,7 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             arch: amd64
             os: ubuntu-22.04
-          - target: aarch64-unknown-linux-gnu
+          - target: blacksmith-4vcpu-ubuntu-2404-arm
             arch: arm64
             os: ubuntu-24.04-arm
 
@@ -273,7 +273,7 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             arch: x86_64
             os: ubuntu-22.04
-          - target: aarch64-unknown-linux-gnu
+          - target: blacksmith-4vcpu-ubuntu-2404-arm
             arch: aarch64
             os: ubuntu-24.04-arm
 
@@ -369,7 +369,7 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             arch: x86_64
             os: ubuntu-22.04
-          - target: aarch64-unknown-linux-gnu
+          - target: blacksmith-4vcpu-ubuntu-2404-arm
             arch: aarch64
             os: ubuntu-24.04-arm
 
@@ -459,7 +459,7 @@ jobs:
             arch: x86_64
             os: ubuntu-22.04
             appimagetool_arch: x86_64
-          - target: aarch64-unknown-linux-gnu
+          - target: blacksmith-4vcpu-ubuntu-2404-arm
             arch: aarch64
             os: ubuntu-24.04-arm
             appimagetool_arch: aarch64
@@ -563,7 +563,7 @@ jobs:
 
   build-snap:
     needs: [clippy, test, e2e, build-macos-app]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Build Snap
     permissions:
       contents: read
@@ -623,7 +623,7 @@ jobs:
             os: macos-latest
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-22.04
-          - target: aarch64-unknown-linux-gnu
+          - target: blacksmith-4vcpu-ubuntu-2404-arm
             os: ubuntu-24.04-arm
 
     runs-on: ${{ matrix.os }}
@@ -765,7 +765,7 @@ jobs:
 
   build-windows-exe:
     needs: [clippy, test, e2e, build-macos-app]
-    runs-on: windows-latest
+    runs-on: blacksmith-4vcpu-windows-2025
     name: Build .exe (x86_64)
     permissions:
       contents: read
@@ -844,7 +844,7 @@ jobs:
           - platform: linux/amd64
             os: ubuntu-latest
           - platform: linux/arm64
-            os: ubuntu-24.04-arm
+            os: blacksmith-4vcpu-ubuntu-2404-arm
 
     runs-on: ${{ matrix.os }}
     name: Build Docker (${{ matrix.platform }})
@@ -963,7 +963,7 @@ jobs:
 
   merge-docker:
     needs: build-docker
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Merge Docker manifest
     permissions:
       contents: read
@@ -1088,7 +1088,7 @@ jobs:
       - build-macos-app
       - build-windows-exe
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Upload release assets
     permissions:
       contents: write
@@ -1128,7 +1128,7 @@ jobs:
       - upload-release
       - merge-docker
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Generate Release SBOM
     permissions:
       contents: write
@@ -1174,7 +1174,7 @@ jobs:
       - upload-release
       - merge-docker
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Update Homebrew tap
     permissions:
       contents: read
@@ -1277,7 +1277,7 @@ jobs:
   update-deploy-tags:
     needs: merge-docker
     if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Update deploy template tags
     permissions:
       contents: write

@@ -27,7 +27,7 @@ permissions: {}
 jobs:
   local-validation:
     name: Local E2E Validation
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: read
       statuses: read

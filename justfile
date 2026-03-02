@@ -273,8 +273,44 @@ ios-generate:
 
 # Generate Apollo GraphQL types for iOS.
 ios-graphql:
-    cargo run -p moltis-schema-export -- apps/ios/GraphQL/Schema/schema.graphqls
+    ./scripts/export-graphql-schema.sh
     ./scripts/generate-ios-graphql.sh
+
+# Export GraphQL schema for all SDKs and iOS.
+sdk-schema-export:
+    ./scripts/export-graphql-schema.sh
+
+# Validate that generated GraphQL schema is synchronized across iOS + SDKs.
+sdk-schema-check:
+    ./scripts/export-graphql-schema.sh --check
+
+# Generate TypeScript SDK typed operations.
+sdk-typescript-generate: sdk-schema-export
+    cd sdks/typescript && if [ ! -d node_modules ]; then npm ci; fi && npm run generate
+
+# Validate TypeScript SDK.
+sdk-typescript-check: sdk-typescript-generate
+    cd sdks/typescript && npm run typecheck && npm run test
+
+# Generate Python SDK typed operations.
+sdk-python-generate: sdk-schema-export
+    cd sdks/python && uv sync --group dev && uv run ariadne-codegen
+
+# Validate Python SDK.
+sdk-python-check:
+    cd sdks/python && uv sync --group dev && uv run ruff check . && uv run mypy . && uv run pytest
+
+# Generate Go SDK typed operations.
+sdk-go-generate: sdk-schema-export
+    cd sdks/go && go mod tidy && go generate ./...
+
+# Validate Go SDK.
+sdk-go-check: sdk-go-generate
+    cd sdks/go && go vet ./... && go test ./...
+
+# Build libmoltis SDK artifacts (header + universal static lib + XCFramework).
+sdk-libmoltis-build:
+    ./scripts/build-libmoltis-sdk.sh
 
 # Build iOS app (generic iOS destination, no signing).
 ios-build: ios-graphql ios-generate

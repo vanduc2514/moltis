@@ -1,0 +1,134 @@
+name: SDK Release
+
+on:
+  push:
+    tags:
+      - "sdk-ts-v*"
+      - "sdk-py-v*"
+      - "sdks/go/v*"
+      - "sdk-libmoltis-v*"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  publish-typescript:
+    name: Publish TypeScript SDK
+    if: startsWith(github.ref, 'refs/tags/sdk-ts-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - name: Install dependencies
+        working-directory: sdks/typescript
+        run: npm ci
+
+      - name: Build package
+        working-directory: sdks/typescript
+        run: npm run build
+
+      - name: Publish to npm
+        working-directory: sdks/typescript
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public
+
+  publish-python:
+    name: Publish Python SDK
+    if: startsWith(github.ref, 'refs/tags/sdk-py-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: python -m pip install --upgrade uv
+
+      - name: Build sdist and wheel
+        working-directory: sdks/python
+        run: |
+          uv sync --group dev
+          uv run python -m build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: sdks/python/dist/
+
+  release-go:
+    name: Validate Go SDK Tag
+    if: startsWith(github.ref, 'refs/tags/sdks/go/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22.x"
+
+      - name: Validate module
+        working-directory: sdks/go
+        run: |
+          go mod tidy
+          go generate ./...
+          go test ./...
+          go list -m
+
+  release-libmoltis:
+    name: Release libmoltis SDK artifacts
+    if: startsWith(github.ref, 'refs/tags/sdk-libmoltis-v')
+    runs-on: macos-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@f7ccc83f9ed1e5b9c81d8a67d7ad1a747e22a561 # master
+        with:
+          toolchain: stable
+          targets: x86_64-apple-darwin,aarch64-apple-darwin,wasm32-wasip2
+
+      - name: Install native build dependencies
+        run: brew install cbindgen
+
+      - name: Build SDK artifacts
+        run: ./scripts/build-libmoltis-sdk.sh
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
+        with:
+          files: |
+            sdks/libmoltis/dist/MoltisBridge.xcframework.zip
+            sdks/libmoltis/dist/moltis_bridge.h
+            sdks/libmoltis/dist/libmoltis_bridge.a

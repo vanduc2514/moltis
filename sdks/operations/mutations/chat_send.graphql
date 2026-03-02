@@ -1,0 +1,7 @@
+mutation SendMessage($message: String!, $sessionKey: String, $model: String) {
+  chat {
+    send(message: $message, sessionKey: $sessionKey, model: $model) {
+      ok
+    }
+  }
+}

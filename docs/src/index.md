@@ -102,6 +102,7 @@ Authentication is only required when accessing Moltis from a non-localhost addre
 - **[MCP Servers](mcp.md)** — Extend with Model Context Protocol
 - **[Hooks](hooks.md)** — Lifecycle hooks for customization
 - **[Local LLMs](local-llm.md)** — Run models on your machine
+- **[SDKs](sdks.md)** — TypeScript, Python, Go, and native bridge SDKs
 
 ### Deployment
 - **[Docker](docker.md)** — Container deployment

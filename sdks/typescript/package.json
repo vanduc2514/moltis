@@ -1,0 +1,40 @@
+{
+  "name": "@moltis/sdk",
+  "version": "0.1.0",
+  "description": "Official TypeScript SDK for Moltis GraphQL",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src/generated"
+  ],
+  "scripts": {
+    "generate": "graphql-codegen --config codegen.ts",
+    "build": "npm run generate && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "pack:dry": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.3.1",
+    "graphql-ws": "^6.0.6"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.7",
+    "@graphql-codegen/client-preset": "^4.8.2",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-03-01",
+  "sdk_matrix": {
+    "typescript": {
+      "package": "@moltis/sdk",
+      "version": "0.1.0",
+      "compatible_moltis": ">=0.0.0"
+    },
+    "python": {
+      "package": "moltis-sdk",
+      "version": "0.1.0",
+      "compatible_moltis": ">=0.0.0"
+    },
+    "go": {
+      "module": "github.com/moltis-org/moltis/sdks/go",
+      "version": "0.1.0",
+      "compatible_moltis": ">=0.0.0"
+    },
+    "libmoltis": {
+      "artifact": "moltis_bridge",
+      "version": "0.1.0",
+      "compatible_moltis": ">=0.0.0"
+    }
+  }
+}

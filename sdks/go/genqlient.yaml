@@ -1,0 +1,9 @@
+schema:
+  - ../schema/schema.graphqls
+operations:
+  - ../operations/**/*.graphql
+generated: internal/generated/generated.go
+package: generated
+bindings:
+  JSON:
+    type: map[string]any

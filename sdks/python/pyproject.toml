@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "moltis-sdk"
+version = "0.1.0"
+description = "Official Python SDK for Moltis GraphQL"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "Moltis Maintainers" }
+]
+requires-python = ">=3.11"
+dependencies = [
+  "httpx>=0.28.0",
+  "pydantic>=2.10.0",
+  "websockets>=14.2"
+]
+
+[project.urls]
+Homepage = "https://moltis.org"
+Repository = "https://github.com/moltis-org/moltis"
+Documentation = "https://docs.moltis.org"
+
+[dependency-groups]
+dev = [
+  "ariadne-codegen>=0.15.3",
+  "build>=1.2.2.post1",
+  "mypy>=1.15.0",
+  "pytest>=8.3.5",
+  "pytest-asyncio>=0.25.3",
+  "ruff>=0.9.10"
+]
+
+[tool.ariadne-codegen]
+schema_path = "../schema/schema.graphqls"
+queries_path = "../operations"
+target_package_name = "generated"
+target_package_path = "src/moltis_sdk"
+async_client = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["src/moltis_sdk/generated"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC", "PIE"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src", "tests"]
+exclude = ["src/moltis_sdk/generated/.*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

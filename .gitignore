@@ -24,3 +24,14 @@ crates/web/ui/test-results/
 crates/gateway/ui/node_modules/
 crates/gateway/ui/playwright-report/
 crates/gateway/ui/test-results/
+sdks/typescript/node_modules/
+sdks/typescript/dist/
+sdks/python/.venv/
+sdks/python/.mypy_cache/
+sdks/python/.pytest_cache/
+sdks/python/.ruff_cache/
+sdks/python/dist/
+sdks/python/build/
+sdks/python/**/__pycache__/
+sdks/go/internal/generated/generated.go
+sdks/libmoltis/dist/

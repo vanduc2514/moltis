@@ -128,6 +128,22 @@ See [Security Architecture](https://docs.moltis.org/security.html) for details.
 - **Security** — Encryption-at-rest vault (XChaCha20-Poly1305 + Argon2id), password + passkey + API key auth, sandbox isolation, SSRF/CSWSH protection
 - **Operations** — Cron scheduling, OpenTelemetry tracing, Prometheus metrics, cloud deploy (Fly.io, DigitalOcean), Tailscale integration
 
+## SDKs
+
+Moltis now includes first-party SDK workspaces under `sdks/`:
+
+- `sdks/typescript` — TypeScript GraphQL SDK
+- `sdks/python` — Python GraphQL SDK
+- `sdks/go` — Go GraphQL SDK
+- `sdks/libmoltis` — native C ABI packaging from `moltis-swift-bridge`
+
+Shared GraphQL SDK schema and operations live in:
+
+- `sdks/schema/schema.graphqls`
+- `sdks/operations/**/*.graphql`
+
+See [SDK docs](https://docs.moltis.org/sdks.html) for usage and release details.
+
 ## How It Works
 
 Moltis is a **local-first AI gateway** — a single Rust binary that sits

@@ -1,0 +1,15 @@
+query FetchSessions {
+  sessions {
+    list {
+      ...SessionFields
+    }
+  }
+}
+
+query SearchSessions($query: String!) {
+  sessions {
+    search(query: $query) {
+      ...SessionFields
+    }
+  }
+}

@@ -6010,7 +6010,194 @@ JSON object <code>{"kind":"created","sessionKey":"..."}</code> dispatched to
 <p>When sessions are imported, Moltis also generates markdown transcripts in <code>~/.moltis/memory/sessions/</code>. These contain the user/assistant conversation text and are indexed by the memory system, making your imported OpenClaw conversations searchable.</p>
 <h3 id="workspace-files-not-appearing"><a class="header" href="#workspace-files-not-appearing">Workspace files not appearing</a></h3>
 <p>If a workspace file wasn’t imported, it may already exist at the destination with custom content. The import never overwrites user-customized files. Check <code>~/.moltis/SOUL.md</code> (or <code>~/.moltis/agents/&lt;id&gt;/SOUL.md</code> for non-default agents) to see what’s there. You can delete it and re-import to get the OpenClaw version.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="authentication-1"><a class="header" href="#authentication-1">Authentication</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="multi-node"><a class="header" href="#multi-node">Multi-Node</a></h1>
+<p>Moltis can distribute work across multiple machines. A <strong>node</strong> is a remote
+device that connects to your gateway and executes commands on your behalf.
+This lets the AI agent run shell commands on a Linux server, query a Raspberry
+Pi, or leverage a GPU machine — all from a single chat session.</p>
+<h2 id="how-it-works-8"><a class="header" href="#how-it-works-8">How It Works</a></h2>
+<pre><code>┌──────────────┐    WebSocket     ┌─────────────────┐
+│  Your laptop │◄────────────────►│  Moltis gateway  │
+│  (browser)   │                  │  (moltis)        │
+└──────────────┘                  └────────┬─────────┘
+                                           │ WebSocket
+                                  ┌────────▼─────────┐
+                                  │  Remote machine   │
+                                  │  (moltis node)    │
+                                  └──────────────────┘
+</code></pre>
+<ol>
+<li>The gateway runs on your primary machine (or a server).</li>
+<li>On the remote machine, run <code>moltis node add</code> to register it with the gateway.</li>
+<li>The gateway authenticates the node using a <strong>device token</strong> from the pairing flow.</li>
+<li>Once connected, the agent can execute commands on the node, query its
+telemetry, and discover its LLM providers.</li>
+</ol>
+<p>Nodes are <strong>stateless from the gateway’s perspective</strong> — they connect and
+disconnect freely. There is no start/stop lifecycle managed by the gateway;
+a node is available when its process is running and connected.</p>
+<h2 id="pairing-a-node"><a class="header" href="#pairing-a-node">Pairing a Node</a></h2>
+<p>Before a node can connect, it must be paired with the gateway.</p>
+<ol>
+<li>Open the <strong>Nodes</strong> page in the web UI (Settings → Nodes).</li>
+<li>Click <strong>Generate Token</strong> to create a device token.</li>
+<li>Copy the connection command shown in the UI.</li>
+<li>Run it on the remote machine.</li>
+</ol>
+<p>The pairing flow produces a device token that authenticates the node on every
+connection. Tokens can be revoked from the Nodes page at any time.</p>
+<h2 id="adding-a-node"><a class="header" href="#adding-a-node">Adding a Node</a></h2>
+<p>On the remote machine, register it as a node:</p>
+<pre><code class="language-bash">moltis node add --host ws://your-gateway:9090/ws --token &lt;device-token&gt; --name "Build Server"
+</code></pre>
+<p>This saves the connection parameters to <code>~/.moltis/node.json</code> and installs an
+OS service that starts on boot and reconnects on failure:</p>
+<div class="table-wrapper"><table><thead><tr><th>Platform</th><th>Service file</th></tr></thead><tbody>
+<tr><td>macOS</td><td><code>~/Library/LaunchAgents/org.moltis.node.plist</code></td></tr>
+<tr><td>Linux</td><td><code>~/.config/systemd/user/moltis-node.service</code></td></tr>
+</tbody></table>
+</div>
+<p>Options:</p>
+<div class="table-wrapper"><table><thead><tr><th>Flag</th><th>Description</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>--host</code></td><td>Gateway WebSocket URL</td><td>(required)</td></tr>
+<tr><td><code>--token</code></td><td>Device token from pairing</td><td>(required)</td></tr>
+<tr><td><code>--name</code></td><td>Display name shown in the UI</td><td>none</td></tr>
+<tr><td><code>--node-id</code></td><td>Custom node identifier</td><td>random UUID</td></tr>
+<tr><td><code>--working-dir</code></td><td>Working directory for commands</td><td><code>$HOME</code></td></tr>
+<tr><td><code>--timeout</code></td><td>Max command timeout in seconds</td><td><code>300</code></td></tr>
+<tr><td><code>--foreground</code></td><td>Run in the terminal instead of installing a service</td><td>off</td></tr>
+</tbody></table>
+</div>
+<p>You can also set <code>MOLTIS_GATEWAY_URL</code> and <code>MOLTIS_DEVICE_TOKEN</code> as
+environment variables instead of passing <code>--host</code> and <code>--token</code>.</p>
+<h3 id="foreground-mode"><a class="header" href="#foreground-mode">Foreground mode</a></h3>
+<p>For debugging or one-off use, pass <code>--foreground</code> to run the node in the
+current terminal session instead of installing a service:</p>
+<pre><code class="language-bash">moltis node add --host ws://your-gateway:9090/ws --token &lt;device-token&gt; --foreground
+</code></pre>
+<p>Press <code>Ctrl+C</code> to disconnect.</p>
+<h2 id="removing-a-node"><a class="header" href="#removing-a-node">Removing a Node</a></h2>
+<p>To disconnect this machine and remove the background service:</p>
+<pre><code class="language-bash">moltis node remove
+</code></pre>
+<p>This stops the service, removes the service file, and deletes the saved
+configuration from <code>~/.moltis/node.json</code>.</p>
+<h2 id="checking-status"><a class="header" href="#checking-status">Checking Status</a></h2>
+<pre><code class="language-bash">moltis node status
+</code></pre>
+<p>Shows the gateway URL, display name, and whether the background service is
+running.</p>
+<h2 id="logs"><a class="header" href="#logs">Logs</a></h2>
+<pre><code class="language-bash">moltis node logs
+# Tail the log:
+tail -f $(moltis node logs)
+</code></pre>
+<h2 id="selecting-a-node-in-chat"><a class="header" href="#selecting-a-node-in-chat">Selecting a Node in Chat</a></h2>
+<p>Once a node is connected, you can target it from a chat session:</p>
+<ul>
+<li><strong>UI dropdown</strong>: The chat toolbar shows a node selector next to the model
+picker. Select a node to route all <code>exec</code> commands to it. Select “Local” to
+revert to local execution.</li>
+<li><strong>Agent tools</strong>: The agent can call <code>nodes_list</code>, <code>nodes_describe</code>, and
+<code>nodes_select</code> to programmatically pick a node based on capabilities or
+telemetry.</li>
+</ul>
+<p>The node assignment is per-session and persists across page reloads.</p>
+<h2 id="node-telemetry"><a class="header" href="#node-telemetry">Node Telemetry</a></h2>
+<p>Connected nodes report system telemetry every 30 seconds:</p>
+<ul>
+<li>CPU count and usage</li>
+<li>Memory total and available</li>
+<li>Disk total and available (root partition)</li>
+<li>System uptime</li>
+<li>Installed runtimes (Python, Node.js, Ruby, Go, Rust, Java)</li>
+<li>Available LLM providers (Ollama models, API key presence)</li>
+</ul>
+<p>This data is visible on the Nodes page and available to the agent via the
+<code>nodes_describe</code> tool.</p>
+<h2 id="cli-reference"><a class="header" href="#cli-reference">CLI Reference</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Command</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>moltis node generate-token</code></td><td>Generate a device token and print the <code>add</code> command</td></tr>
+<tr><td><code>moltis node list</code></td><td>List all connected nodes</td></tr>
+<tr><td><code>moltis node add --host &lt;url&gt; --token &lt;tok&gt;</code></td><td>Join this machine to a gateway as a node</td></tr>
+<tr><td><code>moltis node add ... --foreground</code></td><td>Run in the terminal instead of installing a service</td></tr>
+<tr><td><code>moltis node remove</code></td><td>Disconnect this machine and remove the service</td></tr>
+<tr><td><code>moltis node status</code></td><td>Show connection info and service status</td></tr>
+<tr><td><code>moltis node logs</code></td><td>Print log file path</td></tr>
+</tbody></table>
+</div>
+<h2 id="security-3"><a class="header" href="#security-3">Security</a></h2>
+<ul>
+<li><strong>Device tokens</strong> are SHA-256 hashed before storage. The raw token is shown
+once during pairing and never stored on the gateway.</li>
+<li><strong>Environment filtering</strong>: When the gateway forwards commands to a node, only
+safe environment variables are forwarded (<code>TERM</code>, <code>LANG</code>, <code>LC_*</code>). Secrets
+like API keys, <code>DYLD_*</code>, and <code>LD_PRELOAD</code> are always blocked.</li>
+<li><strong>Token revocation</strong>: Revoke a device token from the Nodes page at any time.
+The node will be disconnected on its next reconnect attempt.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="service-management"><a class="header" href="#service-management">Service Management</a></h1>
+<p>Moltis can be installed as an OS service so it starts automatically on boot
+and restarts after crashes.</p>
+<h2 id="install-2"><a class="header" href="#install-2">Install</a></h2>
+<pre><code class="language-bash">moltis service install
+</code></pre>
+<p>This creates a service definition and starts it immediately:</p>
+<div class="table-wrapper"><table><thead><tr><th>Platform</th><th>Service file</th><th>Init system</th></tr></thead><tbody>
+<tr><td>macOS</td><td><code>~/Library/LaunchAgents/org.moltis.gateway.plist</code></td><td>launchd (user agent)</td></tr>
+<tr><td>Linux</td><td><code>~/.config/systemd/user/moltis.service</code></td><td>systemd (user unit)</td></tr>
+</tbody></table>
+</div>
+<p>Both configurations:</p>
+<ul>
+<li><strong>Start on boot</strong> (<code>RunAtLoad</code> / <code>WantedBy=default.target</code>)</li>
+<li><strong>Restart on failure</strong> with a 10-second cooldown</li>
+<li><strong>Log to</strong> <code>~/.moltis/moltis.log</code></li>
+</ul>
+<h3 id="options"><a class="header" href="#options">Options</a></h3>
+<p>You can pass <code>--bind</code>, <code>--port</code>, and <code>--log-level</code> to bake them into the
+service definition:</p>
+<pre><code class="language-bash">moltis service install --bind 0.0.0.0 --port 8080 --log-level debug
+</code></pre>
+<p>These flags are written into the service file. The service reads the rest of
+its configuration from <code>~/.moltis/moltis.toml</code> as usual.</p>
+<h2 id="manage"><a class="header" href="#manage">Manage</a></h2>
+<pre><code class="language-bash">moltis service status     # Show running/stopped/not-installed and PID
+moltis service stop       # Stop the service
+moltis service restart    # Restart the service
+moltis service logs       # Print the log file path
+</code></pre>
+<p>To tail the logs:</p>
+<pre><code class="language-bash">tail -f $(moltis service logs)
+</code></pre>
+<h2 id="uninstall"><a class="header" href="#uninstall">Uninstall</a></h2>
+<pre><code class="language-bash">moltis service uninstall
+</code></pre>
+<p>This stops the service, removes the service file, and cleans up.</p>
+<h2 id="cli-reference-1"><a class="header" href="#cli-reference-1">CLI Reference</a></h2>
+<div class="table-wrapper"><table><thead><tr><th>Command</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>moltis service install</code></td><td>Install and start the service</td></tr>
+<tr><td><code>moltis service uninstall</code></td><td>Stop and remove the service</td></tr>
+<tr><td><code>moltis service status</code></td><td>Show service status and PID</td></tr>
+<tr><td><code>moltis service stop</code></td><td>Stop the service</td></tr>
+<tr><td><code>moltis service restart</code></td><td>Restart the service</td></tr>
+<tr><td><code>moltis service logs</code></td><td>Print log file path</td></tr>
+</tbody></table>
+</div>
+<h2 id="how-it-differs-from-moltis-node-add"><a class="header" href="#how-it-differs-from-moltis-node-add">How It Differs from <code>moltis node add</code></a></h2>
+<p><code>moltis service install</code> manages the <strong>gateway</strong> — the main Moltis server
+that hosts the web UI, chat sessions, and API.</p>
+<p><code>moltis node add</code> registers a <strong>headless node</strong> — a client process on a
+remote machine that connects back to a gateway for command execution. See
+<a href="nodes.html">Multi-Node</a> for details.</p>
+<div class="table-wrapper"><table><thead><tr><th></th><th><code>moltis service</code></th><th><code>moltis node</code></th></tr></thead><tbody>
+<tr><td>What it runs</td><td>The gateway server</td><td>A node client</td></tr>
+<tr><td>Needs <code>--host</code>/<code>--token</code></td><td>No</td><td>Yes</td></tr>
+<tr><td>Config source</td><td><code>~/.moltis/moltis.toml</code></td><td><code>~/.moltis/node.json</code></td></tr>
+<tr><td>launchd label</td><td><code>org.moltis.gateway</code></td><td><code>org.moltis.node</code></td></tr>
+<tr><td>systemd unit</td><td><code>moltis.service</code></td><td><code>moltis-node.service</code></td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="authentication-1"><a class="header" href="#authentication-1">Authentication</a></h1>
 <p>Moltis uses a unified authentication gate that protects all routes with a
 single source of truth. This page explains how authentication works, the
 decision logic, and the different credential types.</p>
@@ -6590,7 +6777,7 @@ drift re-trust, dependency install guards, kill switch, audit log), see
 <p>By default, Moltis requires explicit user approval before executing potentially
 dangerous commands. This “human-in-the-loop” design ensures the AI cannot take
 destructive actions without consent.</p>
-<h3 id="how-it-works-8"><a class="header" href="#how-it-works-8">How It Works</a></h3>
+<h3 id="how-it-works-9"><a class="header" href="#how-it-works-9">How It Works</a></h3>
 <p>When the agent wants to run a command:</p>
 <ol>
 <li>The command is analyzed against approval policies</li>
@@ -7396,7 +7583,7 @@ fly secrets set MOLTIS_PASSWORD="your-password"
 # Create persistent storage
 fly volumes create moltis_data --region iad --size 1
 </code></pre>
-<h3 id="how-it-works-9"><a class="header" href="#how-it-works-9">How it works</a></h3>
+<h3 id="how-it-works-10"><a class="header" href="#how-it-works-10">How it works</a></h3>
 <ul>
 <li><strong>Image</strong>: pulled from <code>ghcr.io/moltis-org/moltis:latest</code></li>
 <li><strong>Port</strong>: internal 8080, Fly terminates TLS and routes HTTPS traffic</li>
@@ -7943,7 +8130,7 @@ startup in the correct dependency order.</p>
     │   └── 20240205100004_init.sql   # files, chunks, embedding_cache, FTS
     └── src/lib.rs                     # run_migrations() (separate memory.db)
 </code></pre>
-<h2 id="how-it-works-10"><a class="header" href="#how-it-works-10">How It Works</a></h2>
+<h2 id="how-it-works-11"><a class="header" href="#how-it-works-11">How It Works</a></h2>
 <h3 id="migration-ownership"><a class="header" href="#migration-ownership">Migration Ownership</a></h3>
 <p>Each crate is autonomous and owns its schema:</p>
 <div class="table-wrapper"><table><thead><tr><th>Crate</th><th>Database</th><th>Tables</th><th>Migration File</th></tr></thead><tbody>
@@ -8400,7 +8587,7 @@ fn main() {
 
     // Now spans will add labels to metrics
 }</code></pre></pre>
-<h3 id="how-it-works-11"><a class="header" href="#how-it-works-11">How It Works</a></h3>
+<h3 id="how-it-works-12"><a class="header" href="#how-it-works-12">How It Works</a></h3>
 <p>When tracing is enabled, span fields are automatically added as metric labels:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -8760,7 +8947,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h3 id="deprecated"><a class="header" href="#deprecated">Deprecated</a></h3>
 <h3 id="removed"><a class="header" href="#removed">Removed</a></h3>
 <h3 id="fixed"><a class="header" href="#fixed">Fixed</a></h3>
-<h3 id="security-3"><a class="header" href="#security-3">Security</a></h3>
+<h3 id="security-4"><a class="header" href="#security-4">Security</a></h3>
 <h2 id="01011---2026-03-02"><a class="header" href="#01011---2026-03-02">[0.10.11] - 2026-03-02</a></h2>
 <h2 id="01010---2026-03-02"><a class="header" href="#01010---2026-03-02">[0.10.10] - 2026-03-02</a></h2>
 <h3 id="fixed-1"><a class="header" href="#fixed-1">Fixed</a></h3>
@@ -8809,7 +8996,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>[web] Auto-install node_modules in Tailwind build script</li>
 <li>[web] Retry openclaw onboarding scan until ws is ready</li>
 </ul>
-<h3 id="security-4"><a class="header" href="#security-4">Security</a></h3>
+<h3 id="security-5"><a class="header" href="#security-5">Security</a></h3>
 <ul>
 <li>[macos] Wire settings UI to rust config backend (#267)</li>
 <li>[channels] Shared channel webhook middleware pipeline (#290)</li>
@@ -8859,14 +9046,14 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Release packaging now installs cross-compilation targets on the active nightly toolchain in the Homebrew binary job, fixing <code>error[E0463]: can't find crate for core</code> during macOS binary builds.</li>
 <li>Docker release builds now copy <code>apps/courier</code> into the image build context so Cargo workspace metadata resolves correctly during WASM component builds.</li>
 </ul>
-<h3 id="security-5"><a class="header" href="#security-5">Security</a></h3>
+<h3 id="security-6"><a class="header" href="#security-6">Security</a></h3>
 <h2 id="0101---2026-02-28"><a class="header" href="#0101---2026-02-28">[0.10.1] - 2026-02-28</a></h2>
 <h3 id="added-5"><a class="header" href="#added-5">Added</a></h3>
 <h3 id="changed-5"><a class="header" href="#changed-5">Changed</a></h3>
 <h3 id="deprecated-2"><a class="header" href="#deprecated-2">Deprecated</a></h3>
 <h3 id="removed-2"><a class="header" href="#removed-2">Removed</a></h3>
 <h3 id="fixed-9"><a class="header" href="#fixed-9">Fixed</a></h3>
-<h3 id="security-6"><a class="header" href="#security-6">Security</a></h3>
+<h3 id="security-7"><a class="header" href="#security-7">Security</a></h3>
 <h2 id="0100---2026-02-28"><a class="header" href="#0100---2026-02-28">[0.10.0] - 2026-02-28</a></h2>
 <h3 id="added-6"><a class="header" href="#added-6">Added</a></h3>
 <ul>
@@ -8967,35 +9154,35 @@ centered spinner.</li>
 <li>Gateway startup now blocks the common reverse-proxy TLS mismatch (<code>MOLTIS_BEHIND_PROXY=true</code> with Moltis TLS enabled) and explains using <code>--no-tls</code>; HTTPS-upstream proxy setups can explicitly opt in with <code>MOLTIS_ALLOW_TLS_BEHIND_PROXY=true</code></li>
 <li>WebSocket same-origin checks now accept proxy deployments that rewrite <code>Host</code> by using <code>X-Forwarded-Host</code> in proxy mode, and treat implicit <code>:443</code>/<code>:80</code> as equivalent to default ports</li>
 </ul>
-<h3 id="security-7"><a class="header" href="#security-7">Security</a></h3>
+<h3 id="security-8"><a class="header" href="#security-8">Security</a></h3>
 <h2 id="0910---2026-02-21"><a class="header" href="#0910---2026-02-21">[0.9.10] - 2026-02-21</a></h2>
 <h3 id="added-7"><a class="header" href="#added-7">Added</a></h3>
 <h3 id="changed-7"><a class="header" href="#changed-7">Changed</a></h3>
 <h3 id="deprecated-4"><a class="header" href="#deprecated-4">Deprecated</a></h3>
 <h3 id="removed-4"><a class="header" href="#removed-4">Removed</a></h3>
 <h3 id="fixed-11"><a class="header" href="#fixed-11">Fixed</a></h3>
-<h3 id="security-8"><a class="header" href="#security-8">Security</a></h3>
+<h3 id="security-9"><a class="header" href="#security-9">Security</a></h3>
 <h2 id="099---2026-02-21"><a class="header" href="#099---2026-02-21">[0.9.9] - 2026-02-21</a></h2>
 <h3 id="added-8"><a class="header" href="#added-8">Added</a></h3>
 <h3 id="changed-8"><a class="header" href="#changed-8">Changed</a></h3>
 <h3 id="deprecated-5"><a class="header" href="#deprecated-5">Deprecated</a></h3>
 <h3 id="removed-5"><a class="header" href="#removed-5">Removed</a></h3>
 <h3 id="fixed-12"><a class="header" href="#fixed-12">Fixed</a></h3>
-<h3 id="security-9"><a class="header" href="#security-9">Security</a></h3>
+<h3 id="security-10"><a class="header" href="#security-10">Security</a></h3>
 <h2 id="098---2026-02-21"><a class="header" href="#098---2026-02-21">[0.9.8] - 2026-02-21</a></h2>
 <h3 id="added-9"><a class="header" href="#added-9">Added</a></h3>
 <h3 id="changed-9"><a class="header" href="#changed-9">Changed</a></h3>
 <h3 id="deprecated-6"><a class="header" href="#deprecated-6">Deprecated</a></h3>
 <h3 id="removed-6"><a class="header" href="#removed-6">Removed</a></h3>
 <h3 id="fixed-13"><a class="header" href="#fixed-13">Fixed</a></h3>
-<h3 id="security-10"><a class="header" href="#security-10">Security</a></h3>
+<h3 id="security-11"><a class="header" href="#security-11">Security</a></h3>
 <h2 id="097---2026-02-20"><a class="header" href="#097---2026-02-20">[0.9.7] - 2026-02-20</a></h2>
 <h3 id="added-10"><a class="header" href="#added-10">Added</a></h3>
 <h3 id="changed-10"><a class="header" href="#changed-10">Changed</a></h3>
 <h3 id="deprecated-7"><a class="header" href="#deprecated-7">Deprecated</a></h3>
 <h3 id="removed-7"><a class="header" href="#removed-7">Removed</a></h3>
 <h3 id="fixed-14"><a class="header" href="#fixed-14">Fixed</a></h3>
-<h3 id="security-11"><a class="header" href="#security-11">Security</a></h3>
+<h3 id="security-12"><a class="header" href="#security-12">Security</a></h3>
 <h2 id="096---2026-02-20"><a class="header" href="#096---2026-02-20">[0.9.6] - 2026-02-20</a></h2>
 <h3 id="added-11"><a class="header" href="#added-11">Added</a></h3>
 <ul>
@@ -9009,7 +9196,7 @@ centered spinner.</li>
 <li>Accessing <code>http://</code> on the HTTPS port now returns a 301 redirect to <code>https://</code> instead of a garbled TLS handshake page</li>
 <li>SQLite metrics store now uses WAL journal mode and <code>synchronous=NORMAL</code> to fix slow INSERT times (1-3s) on Docker/WSL2</li>
 </ul>
-<h3 id="security-12"><a class="header" href="#security-12">Security</a></h3>
+<h3 id="security-13"><a class="header" href="#security-13">Security</a></h3>
 <h2 id="095---2026-02-20"><a class="header" href="#095---2026-02-20">[0.9.5] - 2026-02-20</a></h2>
 <h3 id="added-12"><a class="header" href="#added-12">Added</a></h3>
 <h3 id="changed-12"><a class="header" href="#changed-12">Changed</a></h3>
@@ -9019,21 +9206,21 @@ centered spinner.</li>
 <ul>
 <li>Skip jemalloc on Windows (platform-specific dependency gate)</li>
 </ul>
-<h3 id="security-13"><a class="header" href="#security-13">Security</a></h3>
+<h3 id="security-14"><a class="header" href="#security-14">Security</a></h3>
 <h2 id="094---2026-02-20"><a class="header" href="#094---2026-02-20">[0.9.4] - 2026-02-20</a></h2>
 <h3 id="added-13"><a class="header" href="#added-13">Added</a></h3>
 <h3 id="changed-13"><a class="header" href="#changed-13">Changed</a></h3>
 <h3 id="deprecated-10"><a class="header" href="#deprecated-10">Deprecated</a></h3>
 <h3 id="removed-10"><a class="header" href="#removed-10">Removed</a></h3>
 <h3 id="fixed-17"><a class="header" href="#fixed-17">Fixed</a></h3>
-<h3 id="security-14"><a class="header" href="#security-14">Security</a></h3>
+<h3 id="security-15"><a class="header" href="#security-15">Security</a></h3>
 <h2 id="093---2026-02-20"><a class="header" href="#093---2026-02-20">[0.9.3] - 2026-02-20</a></h2>
 <h3 id="added-14"><a class="header" href="#added-14">Added</a></h3>
 <h3 id="changed-14"><a class="header" href="#changed-14">Changed</a></h3>
 <h3 id="deprecated-11"><a class="header" href="#deprecated-11">Deprecated</a></h3>
 <h3 id="removed-11"><a class="header" href="#removed-11">Removed</a></h3>
 <h3 id="fixed-18"><a class="header" href="#fixed-18">Fixed</a></h3>
-<h3 id="security-15"><a class="header" href="#security-15">Security</a></h3>
+<h3 id="security-16"><a class="header" href="#security-16">Security</a></h3>
 <h2 id="092---2026-02-20"><a class="header" href="#092---2026-02-20">[0.9.2] - 2026-02-20</a></h2>
 <h3 id="added-15"><a class="header" href="#added-15">Added</a></h3>
 <ul>
@@ -9050,7 +9237,7 @@ background task results.</li>
 <h3 id="deprecated-12"><a class="header" href="#deprecated-12">Deprecated</a></h3>
 <h3 id="removed-12"><a class="header" href="#removed-12">Removed</a></h3>
 <h3 id="fixed-19"><a class="header" href="#fixed-19">Fixed</a></h3>
-<h3 id="security-16"><a class="header" href="#security-16">Security</a></h3>
+<h3 id="security-17"><a class="header" href="#security-17">Security</a></h3>
 <h2 id="091---2026-02-19"><a class="header" href="#091---2026-02-19">[0.9.1] - 2026-02-19</a></h2>
 <h3 id="added-16"><a class="header" href="#added-16">Added</a></h3>
 <ul>
@@ -9115,7 +9302,7 @@ parsing robustness.</li>
 <li>Gateway: align <code>show_map</code> listing ratings to the right for consistent
 layout.</li>
 </ul>
-<h3 id="security-17"><a class="header" href="#security-17">Security</a></h3>
+<h3 id="security-18"><a class="header" href="#security-18">Security</a></h3>
 <h2 id="090---2026-02-17"><a class="header" href="#090---2026-02-17">[0.9.0] - 2026-02-17</a></h2>
 <h3 id="added-17"><a class="header" href="#added-17">Added</a></h3>
 <ul>
@@ -9138,7 +9325,7 @@ updated provider and local-LLM snippets.</li>
 <code>tools.agent_max_iterations</code> in <code>moltis.toml</code> (default <code>25</code>) instead of
 being hardcoded at runtime.</li>
 </ul>
-<h3 id="security-18"><a class="header" href="#security-18">Security</a></h3>
+<h3 id="security-19"><a class="header" href="#security-19">Security</a></h3>
 <h2 id="0838---2026-02-17"><a class="header" href="#0838---2026-02-17">[0.8.38] - 2026-02-17</a></h2>
 <h3 id="added-18"><a class="header" href="#added-18">Added</a></h3>
 <ul>
@@ -9156,7 +9343,7 @@ delay the first streamed message until enough text has accumulated.</li>
 <h3 id="deprecated-15"><a class="header" href="#deprecated-15">Deprecated</a></h3>
 <h3 id="removed-15"><a class="header" href="#removed-15">Removed</a></h3>
 <h3 id="fixed-22"><a class="header" href="#fixed-22">Fixed</a></h3>
-<h3 id="security-19"><a class="header" href="#security-19">Security</a></h3>
+<h3 id="security-20"><a class="header" href="#security-20">Security</a></h3>
 <h2 id="0837---2026-02-17"><a class="header" href="#0837---2026-02-17">[0.8.37] - 2026-02-17</a></h2>
 <h3 id="added-19"><a class="header" href="#added-19">Added</a></h3>
 <ul>
@@ -9222,7 +9409,7 @@ tabs (notably seen with <code>vim</code>).</li>
 post-connect settle window, fixing initial page-reload cases where tmux
 windows stayed at stale dimensions until a manual tab switch.</li>
 </ul>
-<h3 id="security-20"><a class="header" href="#security-20">Security</a></h3>
+<h3 id="security-21"><a class="header" href="#security-21">Security</a></h3>
 <h2 id="0836---2026-02-16"><a class="header" href="#0836---2026-02-16">[0.8.36] - 2026-02-16</a></h2>
 <h3 id="added-20"><a class="header" href="#added-20">Added</a></h3>
 <ul>
@@ -9251,7 +9438,7 @@ collapsing queued channel replies into a single batch delivery.</li>
 <li>MCP docs/config examples now use the current table-based config shape and <code>/mcp</code> endpoint examples for remote servers.</li>
 <li>Memory embeddings endpoint composition now avoids duplicated path segments like <code>/v1/v1/embeddings</code> and accepts base URLs ending in host-only, <code>/v1</code>, versioned paths (for example <code>/v4</code>), or <code>/embeddings</code></li>
 </ul>
-<h3 id="security-21"><a class="header" href="#security-21">Security</a></h3>
+<h3 id="security-22"><a class="header" href="#security-22">Security</a></h3>
 <h2 id="0835---2026-02-15"><a class="header" href="#0835---2026-02-15">[0.8.35] - 2026-02-15</a></h2>
 <h3 id="added-21"><a class="header" href="#added-21">Added</a></h3>
 <ul>
@@ -9261,7 +9448,7 @@ collapsing queued channel replies into a single batch delivery.</li>
 <h3 id="deprecated-18"><a class="header" href="#deprecated-18">Deprecated</a></h3>
 <h3 id="removed-18"><a class="header" href="#removed-18">Removed</a></h3>
 <h3 id="fixed-25"><a class="header" href="#fixed-25">Fixed</a></h3>
-<h3 id="security-22"><a class="header" href="#security-22">Security</a></h3>
+<h3 id="security-23"><a class="header" href="#security-23">Security</a></h3>
 <h2 id="0834---2026-02-15"><a class="header" href="#0834---2026-02-15">[0.8.34] - 2026-02-15</a></h2>
 <h3 id="added-22"><a class="header" href="#added-22">Added</a></h3>
 <ul>
@@ -9273,7 +9460,7 @@ collapsing queued channel replies into a single batch delivery.</li>
 <h3 id="deprecated-19"><a class="header" href="#deprecated-19">Deprecated</a></h3>
 <h3 id="removed-19"><a class="header" href="#removed-19">Removed</a></h3>
 <h3 id="fixed-26"><a class="header" href="#fixed-26">Fixed</a></h3>
-<h3 id="security-23"><a class="header" href="#security-23">Security</a></h3>
+<h3 id="security-24"><a class="header" href="#security-24">Security</a></h3>
 <h2 id="0833---2026-02-15"><a class="header" href="#0833---2026-02-15">[0.8.33] - 2026-02-15</a></h2>
 <h3 id="added-23"><a class="header" href="#added-23">Added</a></h3>
 <h3 id="changed-23"><a class="header" href="#changed-23">Changed</a></h3>
@@ -9284,7 +9471,7 @@ collapsing queued channel replies into a single batch delivery.</li>
 <li><strong>CI</strong>: remove unnecessary <code>std::path::</code> qualification in gateway server flagged
 by nightly clippy.</li>
 </ul>
-<h3 id="security-24"><a class="header" href="#security-24">Security</a></h3>
+<h3 id="security-25"><a class="header" href="#security-25">Security</a></h3>
 <h2 id="0832---2026-02-15"><a class="header" href="#0832---2026-02-15">[0.8.32] - 2026-02-15</a></h2>
 <h3 id="added-24"><a class="header" href="#added-24">Added</a></h3>
 <h3 id="changed-24"><a class="header" href="#changed-24">Changed</a></h3>
@@ -9295,7 +9482,7 @@ by nightly clippy.</li>
 <li><strong>CI</strong>: gate macOS-only sandbox helper functions with <code>#[cfg]</code> to fix dead-code
 errors on Linux CI.</li>
 </ul>
-<h3 id="security-25"><a class="header" href="#security-25">Security</a></h3>
+<h3 id="security-26"><a class="header" href="#security-26">Security</a></h3>
 <h2 id="0831---2026-02-15"><a class="header" href="#0831---2026-02-15">[0.8.31] - 2026-02-15</a></h2>
 <h3 id="added-25"><a class="header" href="#added-25">Added</a></h3>
 <ul>
@@ -9392,7 +9579,7 @@ tags is now stripped, preventing extra blank lines in streamed output.</li>
 <li><strong>Token bar visible at zero</strong>: the token usage bar no longer disappears
 when all counts are zero; it stays visible as a baseline indicator.</li>
 </ul>
-<h3 id="security-26"><a class="header" href="#security-26">Security</a></h3>
+<h3 id="security-27"><a class="header" href="#security-27">Security</a></h3>
 <h2 id="0830---2026-02-15"><a class="header" href="#0830---2026-02-15">[0.8.30] - 2026-02-15</a></h2>
 <h3 id="added-26"><a class="header" href="#added-26">Added</a></h3>
 <h3 id="changed-26"><a class="header" href="#changed-26">Changed</a></h3>
@@ -9404,7 +9591,7 @@ reasoning context instead of dropping it after refresh/share operations.</li>
 <h3 id="deprecated-23"><a class="header" href="#deprecated-23">Deprecated</a></h3>
 <h3 id="removed-23"><a class="header" href="#removed-23">Removed</a></h3>
 <h3 id="fixed-30"><a class="header" href="#fixed-30">Fixed</a></h3>
-<h3 id="security-27"><a class="header" href="#security-27">Security</a></h3>
+<h3 id="security-28"><a class="header" href="#security-28">Security</a></h3>
 <h2 id="0829---2026-02-14"><a class="header" href="#0829---2026-02-14">[0.8.29] - 2026-02-14</a></h2>
 <h3 id="added-27"><a class="header" href="#added-27">Added</a></h3>
 <ul>
@@ -9431,7 +9618,7 @@ path validation, size limits, and automatic re-indexing after writes</li>
 directory root, which was previously excluded because the filter only matched
 directories</li>
 </ul>
-<h3 id="security-28"><a class="header" href="#security-28">Security</a></h3>
+<h3 id="security-29"><a class="header" href="#security-29">Security</a></h3>
 <h2 id="0828---2026-02-14"><a class="header" href="#0828---2026-02-14">[0.8.28] - 2026-02-14</a></h2>
 <h3 id="added-28"><a class="header" href="#added-28">Added</a></h3>
 <h3 id="changed-28"><a class="header" href="#changed-28">Changed</a></h3>
@@ -9448,7 +9635,7 @@ injected via tool call params.</li>
 <code>provider-validation.js</code> that was accidentally left unstaged in the DRY
 refactoring commit.</li>
 </ul>
-<h3 id="security-29"><a class="header" href="#security-29">Security</a></h3>
+<h3 id="security-30"><a class="header" href="#security-30">Security</a></h3>
 <h2 id="0827---2026-02-14"><a class="header" href="#0827---2026-02-14">[0.8.27] - 2026-02-14</a></h2>
 <h3 id="added-29"><a class="header" href="#added-29">Added</a></h3>
 <h3 id="changed-29"><a class="header" href="#changed-29">Changed</a></h3>
@@ -9467,7 +9654,7 @@ and <code>channel-utils.js</code> modules.</li>
 failure caused by <code>MOLTIS_IDENTITY__NAME</code> environment variable leaking
 into the test via <code>apply_env_overrides</code>.</li>
 </ul>
-<h3 id="security-30"><a class="header" href="#security-30">Security</a></h3>
+<h3 id="security-31"><a class="header" href="#security-31">Security</a></h3>
 <h2 id="0826---2026-02-14"><a class="header" href="#0826---2026-02-14">[0.8.26] - 2026-02-14</a></h2>
 <h3 id="added-30"><a class="header" href="#added-30">Added</a></h3>
 <ul>
@@ -9491,21 +9678,21 @@ synthetic IDs in the agent runner to prevent API errors.</li>
 before opening model selection during onboarding, aligning behavior with the
 Settings &gt; LLM flow.</li>
 </ul>
-<h3 id="security-31"><a class="header" href="#security-31">Security</a></h3>
+<h3 id="security-32"><a class="header" href="#security-32">Security</a></h3>
 <h2 id="0825---2026-02-14"><a class="header" href="#0825---2026-02-14">[0.8.25] - 2026-02-14</a></h2>
 <h3 id="added-31"><a class="header" href="#added-31">Added</a></h3>
 <h3 id="changed-31"><a class="header" href="#changed-31">Changed</a></h3>
 <h3 id="deprecated-28"><a class="header" href="#deprecated-28">Deprecated</a></h3>
 <h3 id="removed-28"><a class="header" href="#removed-28">Removed</a></h3>
 <h3 id="fixed-35"><a class="header" href="#fixed-35">Fixed</a></h3>
-<h3 id="security-32"><a class="header" href="#security-32">Security</a></h3>
+<h3 id="security-33"><a class="header" href="#security-33">Security</a></h3>
 <h2 id="0824---2026-02-13"><a class="header" href="#0824---2026-02-13">[0.8.24] - 2026-02-13</a></h2>
 <h3 id="added-32"><a class="header" href="#added-32">Added</a></h3>
 <h3 id="changed-32"><a class="header" href="#changed-32">Changed</a></h3>
 <h3 id="deprecated-29"><a class="header" href="#deprecated-29">Deprecated</a></h3>
 <h3 id="removed-29"><a class="header" href="#removed-29">Removed</a></h3>
 <h3 id="fixed-36"><a class="header" href="#fixed-36">Fixed</a></h3>
-<h3 id="security-33"><a class="header" href="#security-33">Security</a></h3>
+<h3 id="security-34"><a class="header" href="#security-34">Security</a></h3>
 <h2 id="0823---2026-02-13"><a class="header" href="#0823---2026-02-13">[0.8.23] - 2026-02-13</a></h2>
 <h3 id="added-33"><a class="header" href="#added-33">Added</a></h3>
 <ul>
@@ -9561,7 +9748,7 @@ commands. They are now also injected into the Moltis process at startup,
 making them available to web search, embeddings, and provider API calls.</li>
 </ul>
 <h2 id="0814---2026-02-11"><a class="header" href="#0814---2026-02-11">[0.8.14] - 2026-02-11</a></h2>
-<h3 id="security-34"><a class="header" href="#security-34">Security</a></h3>
+<h3 id="security-35"><a class="header" href="#security-35">Security</a></h3>
 <ul>
 <li><strong>Disconnect all WS clients on credential change</strong>: WebSocket connections
 opened before auth setup are now disconnected when credentials change
@@ -9690,7 +9877,7 @@ connections behind the platform’s reverse proxy.</li>
 <li><strong>WebAuthn origin scheme on PaaS</strong>: Non-localhost RP IDs now default to
 <code>https://</code> origin since PaaS platforms terminate TLS at the proxy.</li>
 </ul>
-<h3 id="security-35"><a class="header" href="#security-35">Security</a></h3>
+<h3 id="security-36"><a class="header" href="#security-36">Security</a></h3>
 <ul>
 <li><strong>Compaction prompt injection hardening</strong>: Session compaction now passes
 typed <code>ChatMessage</code> objects to the summarizer LLM instead of concatenated
@@ -9841,7 +10028,7 @@ dropdown pattern as the chat model selector for consistent UX.</li>
 <li><strong>Branch favicon contrast</strong>: Non-main branches now use a high-contrast purple
 favicon variant so branch sessions are visually distinct from <code>main</code>.</li>
 </ul>
-<h3 id="security-36"><a class="header" href="#security-36">Security</a></h3>
+<h3 id="security-37"><a class="header" href="#security-37">Security</a></h3>
 <ul>
 <li><strong>Content-Security-Policy header</strong>: HTML pages now include a nonce-based CSP
 header (<code>script-src 'self' 'nonce-&lt;UUID&gt;'</code>), preventing inline script
@@ -9860,7 +10047,7 @@ audits security (file permissions, API keys in config), checks directory and
 database health, verifies provider readiness (API keys via config or env vars),
 inspects TLS certificates, and validates MCP server commands on PATH.</li>
 </ul>
-<h3 id="security-37"><a class="header" href="#security-37">Security</a></h3>
+<h3 id="security-38"><a class="header" href="#security-38">Security</a></h3>
 <ul>
 <li><strong>npm install –ignore-scripts</strong>: Skill dependency installation now passes
 <code>--ignore-scripts</code> to npm, preventing supply chain attacks via malicious
@@ -10398,7 +10585,7 @@ with vertical scrolling instead of being scaled down to fit the viewport.</li>
 <li><strong>Telegram typing indicator for long responses</strong>: Channel replies now wait for outbound delivery tasks to finish before chat completion returns, so periodic <code>typing...</code> updates continue until the Telegram message is actually sent.</li>
 <li><strong>Skills dependency install safety</strong>: <code>skills.install_dep</code> now requires explicit user confirmation and blocks host installs when sandbox mode is disabled (unless explicitly overridden in the RPC call).</li>
 </ul>
-<h3 id="security-38"><a class="header" href="#security-38">Security</a></h3>
+<h3 id="security-39"><a class="header" href="#security-39">Security</a></h3>
 <ul>
 <li><strong>Asset response hardening</strong>: Static assets now set <code>X-Content-Type-Options: nosniff</code>, and SVG responses include a restrictive <code>Content-Security-Policy</code> (<code>script-src 'none'</code>, <code>object-src 'none'</code>) to reduce stored-XSS risk if user-controlled SVGs are ever introduced.</li>
 <li><strong>Archive extraction hardening</strong>: Skills/plugin tarball installs now reject unsafe archive paths (<code>..</code>, absolute/path-prefix escapes) and reject symlink/hardlink archive entries to prevent path traversal and link-based escapes.</li>

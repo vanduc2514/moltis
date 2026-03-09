@@ -3,11 +3,9 @@
   "checkpoint_id": "854bee72da09",
   "strategy": "manual-commit",
   "branch": "tailscale-redirects",
-  "checkpoints_count": 3,
+  "checkpoints_count": 0,
   "files_touched": [
-    "crates/gateway/tests/auth_middleware.rs",
-    "crates/web/src/spa.rs",
-    "crates/web/src/templates.rs"
+    "crates/web/src/spa.rs"
   ],
   "sessions": [
     {
@@ -18,10 +16,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 61,
-    "cache_creation_tokens": 69209,
-    "cache_read_tokens": 2681169,
-    "output_tokens": 10954,
-    "api_call_count": 47
+    "input_tokens": 8,
+    "cache_creation_tokens": 3112,
+    "cache_read_tokens": 462617,
+    "output_tokens": 750,
+    "api_call_count": 6
   }
 }

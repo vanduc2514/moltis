@@ -26,3 +26,16 @@ try again
 
 try again
 
+### Prompt 7
+
+configuration ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✖ Biome exited because the configuration resulted in errors. Please fix them.
+
+
+i18n parity OK: 3 locales, 18 namespaces.
+Diff in /Users/penso/.superset/worktrees/moltis/soul-location/crates/cli/src/node_commands.rs:157:
+             let node_config = moltis_node_host::NodeConfig {
+                 gateway_url: config.gateway_url,
+                 device_token: ...
+

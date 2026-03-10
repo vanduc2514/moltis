@@ -3,11 +3,9 @@
   "checkpoint_id": "5e2d7e09626f",
   "strategy": "manual-commit",
   "branch": "soul-location",
-  "checkpoints_count": 4,
+  "checkpoints_count": 0,
   "files_touched": [
-    "crates/config/src/lib.rs",
-    "crates/config/src/loader.rs",
-    "crates/onboarding/src/service.rs"
+    "crates/config/src/lib.rs"
   ],
   "sessions": [
     {
@@ -19,10 +17,10 @@
     }
   ],
   "token_usage": {
-    "input_tokens": 38,
-    "cache_creation_tokens": 82189,
-    "cache_read_tokens": 1151822,
-    "output_tokens": 1475,
-    "api_call_count": 26
+    "input_tokens": 9,
+    "cache_creation_tokens": 4478,
+    "cache_read_tokens": 413124,
+    "output_tokens": 85,
+    "api_call_count": 7
   }
 }

@@ -5788,6 +5788,7 @@ dependencies = [
  "moltis-projects",
  "moltis-sessions",
  "moltis-skills",
+ "moltis-symphony",
  "moltis-tools",
  "moltis-web",
  "open",
@@ -6662,6 +6663,27 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "moltis-symphony"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "dirs-next",
+ "moltis-metrics",
+ "notify-debouncer-full",
+ "regex",
+ "secrecy 0.8.0",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tempfile",
+ "thiserror 2.0.18",
+ "time",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

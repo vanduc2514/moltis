@@ -37,6 +37,7 @@ mod memory_commands;
 mod node_commands;
 mod sandbox_commands;
 mod service_commands;
+mod symphony_commands;
 #[cfg(feature = "tailscale")]
 mod tailscale_commands;
 
@@ -175,6 +176,11 @@ enum Commands {
     Service {
         #[command(subcommand)]
         action: service_commands::ServiceAction,
+    },
+    /// Run Symphony workflow automation from a repository-owned WORKFLOW.md.
+    Symphony {
+        #[command(subcommand)]
+        action: symphony_commands::SymphonyAction,
     },
     #[cfg(feature = "openclaw-import")]
     /// Import data from an OpenClaw installation.
@@ -450,6 +456,7 @@ async fn main() -> anyhow::Result<()> {
         Some(Commands::Memory { action }) => memory_commands::handle_memory(action).await,
         Some(Commands::Node { action }) => node_commands::handle_node(action).await,
         Some(Commands::Service { action }) => service_commands::handle_service(action),
+        Some(Commands::Symphony { action }) => symphony_commands::handle_symphony(action).await,
         #[cfg(feature = "openclaw-import")]
         Some(Commands::Import { action }) => import_commands::handle_import(action).await,
         #[cfg(feature = "tailscale")]

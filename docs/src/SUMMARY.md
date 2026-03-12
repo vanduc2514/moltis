@@ -38,6 +38,7 @@
 - [Session State](session-state.md)
 - [Session Branching](session-branching.md)
 - [Scheduling (Cron Jobs)](scheduling.md)
+- [Symphony](symphony.md)
 - [Skill Self-Extension](skill-tools.md)
 - [Mobile PWA](mobile-pwa.md)
 - [Native Swift Embedding (POC)](native-swift-embedding.md)

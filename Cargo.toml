@@ -39,6 +39,7 @@ default-members = [
   "crates/skills",
   "crates/slack",
   "crates/swift-bridge",
+  "crates/symphony",
   "crates/tailscale",
   "crates/telegram",
   "crates/tls",
@@ -91,6 +92,7 @@ members = [
   "crates/skills",
   "crates/slack",
   "crates/swift-bridge",
+  "crates/symphony",
   "crates/tailscale",
   "crates/telegram",
   "crates/tls",
@@ -325,6 +327,7 @@ moltis-sessions        = { path = "crates/sessions" }
 moltis-skills          = { path = "crates/skills" }
 moltis-slack           = { path = "crates/slack" }
 moltis-swift-bridge    = { path = "crates/swift-bridge" }
+moltis-symphony        = { path = "crates/symphony" }
 moltis-tailscale       = { path = "crates/tailscale" }
 moltis-telegram        = { path = "crates/telegram" }
 moltis-tls             = { path = "crates/tls" }

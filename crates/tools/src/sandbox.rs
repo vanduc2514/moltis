@@ -6208,13 +6208,18 @@ mod tests {
     }
 
     #[test]
-    fn test_create_sandbox_off() {
-        let config = SandboxConfig::default();
+    fn test_create_sandbox_off_uses_no_sandbox() {
+        let config = SandboxConfig {
+            mode: SandboxMode::Off,
+            ..Default::default()
+        };
         let sandbox = create_sandbox(config);
         let id = SandboxId {
             scope: SandboxScope::Session,
             key: "test".into(),
         };
+        assert_eq!(sandbox.backend_name(), "none");
+        assert!(!sandbox.is_real());
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {
             sandbox.ensure_ready(&id, None).await.unwrap();

@@ -259,7 +259,7 @@ models = ["qwen2.5-coder-7b-q4_k_m"]
 <p>Save this as <code>~/.config/moltis/local-llm.json</code> (the same file managed by the
 Settings UI).</p>
 <h2 id="model-storage"><a class="header" href="#model-storage">Model Storage</a></h2>
-<p>Downloaded models are cached in <code>~/.cache/moltis/models/</code> by default. This
+<p>Downloaded models are cached in <code>~/.moltis/models/</code> by default. This
 directory can grow large (several GB per model).</p>
 <h2 id="huggingface-integration"><a class="header" href="#huggingface-integration">HuggingFace Integration</a></h2>
 <p>You can search and download models directly from HuggingFace:</p>
@@ -268,7 +268,7 @@ directory can grow large (several GB per model).</p>
 <li>Enter a search term (e.g., “qwen coder”)</li>
 <li>Select GGUF or MLX backend</li>
 <li>Choose a model from the results</li>
-<li>The model will be downloaded on first use</li>
+<li>The model will download immediately after you configure it</li>
 </ol>
 <h3 id="finding-gguf-models"><a class="header" href="#finding-gguf-models">Finding GGUF Models</a></h3>
 <p>Look for repositories with “GGUF” in the name on HuggingFace:</p>

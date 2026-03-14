@@ -280,6 +280,10 @@ project-specific instructions override workspace-level ones.</p>
 <pre><code>Host: host=moltis-devbox | os=macos | arch=aarch64 | shell=zsh | time=2026-02-17 16:18:00 CET | today=2026-02-17 | provider=openai | model=gpt-5 | session=main | sudo_non_interactive=true | timezone=Europe/Paris
 Sandbox(exec): enabled=true | mode=all | backend=docker | scope=session | image=moltis-sandbox:abc123 | workspace_mount=ro | network=disabled
 </code></pre>
+<p>For channel-bound sessions, the host line also includes surface metadata so the
+LLM knows where it is operating, for example:</p>
+<pre><code class="language-text">Host: ... | session=telegram:bot-main:123456 | surface=telegram | session_kind=channel | channel_type=telegram | channel_account=bot-main | channel_chat_id=123456 | channel_chat_type=private
+</code></pre>
 <p>When tools are included, an <strong>Execution routing</strong> block explains how <code>exec</code>
 routes commands between sandbox and host.</p>
 <p>The runtime context is populated at request time in <code>chat.rs</code> by detecting:</p>
@@ -287,6 +291,8 @@ routes commands between sandbox and host.</p>
 <li>Host name, OS, architecture, shell</li>
 <li>Active LLM provider and model</li>
 <li>Session key</li>
+<li>Runtime surface and session kind (<code>web</code>, <code>channel</code>, <code>cron</code>, <code>heartbeat</code>)</li>
+<li>Channel binding metadata (<code>channel_type</code>, <code>channel_account</code>, <code>channel_chat_id</code>, <code>channel_chat_type</code>) when available</li>
 <li>Sudo availability</li>
 <li>Timezone and accept-language from the browser</li>
 <li>Geolocation (from browser or <code>USER.md</code>)</li>

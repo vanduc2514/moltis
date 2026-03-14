@@ -253,6 +253,23 @@ dm_policy = "open"
 <a href="telegram.html">Telegram</a>, <a href="discord.html">Discord</a>, <a href="slack.html">Slack</a>,
 <a href="whatsapp.html">WhatsApp</a>.</p>
 <p>You can also use the web UI’s <strong>Channels</strong> tab for guided setup with each platform.</p>
+<h2 id="proactive-outbound-messaging"><a class="header" href="#proactive-outbound-messaging">Proactive Outbound Messaging</a></h2>
+<p>Agents are not limited to replying in the current chat. Moltis supports three
+main outbound patterns:</p>
+<ul>
+<li><strong><code>send_message</code> tool</strong> for direct proactive messages to any configured channel account/chat</li>
+<li><strong>Cron job delivery</strong> for background jobs that should post their final output to a channel</li>
+<li><strong>Heartbeat delivery</strong> for periodic heartbeat acknowledgements sent to a chosen chat</li>
+</ul>
+<p>Example <code>send_message</code> tool call:</p>
+<pre><code class="language-json">{
+  "account_id": "my-telegram-bot",
+  "to": "123456789",
+  "text": "Deployment finished successfully."
+}
+</code></pre>
+<p><code>account_id</code> is the configured channel account name from <code>moltis.toml</code>, and
+<code>to</code> is the destination chat, peer, or room identifier for that platform.</p>
 <h2 id="access-control"><a class="header" href="#access-control">Access Control</a></h2>
 <p>All channels share the same access control model with three settings:</p>
 <h3 id="dm-policy"><a class="header" href="#dm-policy">DM Policy</a></h3>

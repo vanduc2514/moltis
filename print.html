@@ -3769,6 +3769,23 @@ dm_policy = "open"
 <a href="telegram.html">Telegram</a>, <a href="discord.html">Discord</a>, <a href="slack.html">Slack</a>,
 <a href="whatsapp.html">WhatsApp</a>.</p>
 <p>You can also use the web UI’s <strong>Channels</strong> tab for guided setup with each platform.</p>
+<h2 id="proactive-outbound-messaging"><a class="header" href="#proactive-outbound-messaging">Proactive Outbound Messaging</a></h2>
+<p>Agents are not limited to replying in the current chat. Moltis supports three
+main outbound patterns:</p>
+<ul>
+<li><strong><code>send_message</code> tool</strong> for direct proactive messages to any configured channel account/chat</li>
+<li><strong>Cron job delivery</strong> for background jobs that should post their final output to a channel</li>
+<li><strong>Heartbeat delivery</strong> for periodic heartbeat acknowledgements sent to a chosen chat</li>
+</ul>
+<p>Example <code>send_message</code> tool call:</p>
+<pre><code class="language-json">{
+  "account_id": "my-telegram-bot",
+  "to": "123456789",
+  "text": "Deployment finished successfully."
+}
+</code></pre>
+<p><code>account_id</code> is the configured channel account name from <code>moltis.toml</code>, and
+<code>to</code> is the destination chat, peer, or room identifier for that platform.</p>
 <h2 id="access-control"><a class="header" href="#access-control">Access Control</a></h2>
 <p>All channels share the same access control model with three settings:</p>
 <h3 id="dm-policy"><a class="header" href="#dm-policy">DM Policy</a></h3>
@@ -5848,12 +5865,15 @@ recurring tasks. Jobs can fire agent turns, send system events, or trigger
 other actions on a flexible schedule.</p>
 <h2 id="heartbeat"><a class="header" href="#heartbeat">Heartbeat</a></h2>
 <p>The <strong>heartbeat</strong> is a special system cron job (<code>__heartbeat__</code>) that runs
-periodically (default: every 15 minutes). It gives the agent an opportunity to
+periodically (default: every 30 minutes). It gives the agent an opportunity to
 check reminders, run deferred tasks, and react to events that occurred while
 the user was away.</p>
 <p>The heartbeat prompt is assembled from <code>HEARTBEAT.md</code> in the workspace data
 directory. If the file is empty and no pending events exist, the heartbeat
 turn is skipped to save tokens.</p>
+<p>Heartbeat replies can also be delivered to a configured channel destination via
+<code>[heartbeat] deliver</code>, <code>channel</code>, and <code>to</code> in <code>moltis.toml</code>, or from the web UI
+under <strong>Settings -&gt; Heartbeat</strong>.</p>
 <h2 id="event-driven-heartbeat-wake"><a class="header" href="#event-driven-heartbeat-wake">Event-Driven Heartbeat Wake</a></h2>
 <p>Normally the heartbeat fires on its regular schedule. The <strong>wake</strong> system lets
 other parts of Moltis trigger an immediate heartbeat when something noteworthy
@@ -5900,7 +5920,7 @@ surface in the next heartbeat turn.</p>
 <p>Jobs support several schedule kinds:</p>
 <div class="table-wrapper"><table><thead><tr><th>Kind</th><th>Fields</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>every</code></td><td><code>every_ms</code></td><td>Repeat at a fixed interval (milliseconds)</td></tr>
-<tr><td><code>cron</code></td><td><code>cron_expr</code></td><td>Standard cron expression (e.g. <code>"0 */6 * * *"</code>)</td></tr>
+<tr><td><code>cron</code></td><td><code>expr</code>, optional <code>tz</code></td><td>Standard cron expression (e.g. <code>"0 */6 * * *"</code>)</td></tr>
 <tr><td><code>at</code></td><td><code>at_ms</code></td><td>Run once at a specific Unix timestamp (ms)</td></tr>
 </tbody></table>
 </div>
@@ -5909,6 +5929,7 @@ surface in the next heartbeat turn.</p>
 <ul>
 <li><strong><code>add</code></strong> — Create a new job</li>
 <li><strong><code>list</code></strong> — List all jobs</li>
+<li><strong><code>run</code></strong> — Trigger a job immediately</li>
 <li><strong><code>update</code></strong> — Patch an existing job (name, schedule, enabled, wakeMode, etc.)</li>
 <li><strong><code>remove</code></strong> — Delete a job</li>
 <li><strong><code>runs</code></strong> — View recent execution history for a job</li>
@@ -5917,11 +5938,43 @@ surface in the next heartbeat turn.</p>
 <p>Set <code>deleteAfterRun: true</code> to automatically remove a job after its first
 execution. Combined with the <code>at</code> schedule, this is useful for deferred
 one-time tasks (reminders, follow-ups).</p>
+<h2 id="channel-delivery"><a class="header" href="#channel-delivery">Channel Delivery</a></h2>
+<p>Background agent turns can deliver their final output to a configured channel
+account/chat after the run completes.</p>
+<p>Use all of the following together:</p>
+<ul>
+<li><code>sessionTarget: "isolated"</code></li>
+<li><code>payload.kind: "agentTurn"</code></li>
+<li><code>payload.deliver: true</code></li>
+<li><code>payload.channel: "&lt;account_id&gt;"</code></li>
+<li><code>payload.to: "&lt;chat_or_peer_id&gt;"</code></li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-json">{
+  "action": "add",
+  "job": {
+    "name": "daily summary",
+    "schedule": { "kind": "cron", "expr": "0 9 * * *", "tz": "Europe/Paris" },
+    "sessionTarget": "isolated",
+    "payload": {
+      "kind": "agentTurn",
+      "message": "Summarize yesterday's activity and send it to Telegram.",
+      "deliver": true,
+      "channel": "my-telegram-bot",
+      "to": "123456789"
+    }
+  }
+}
+</code></pre>
+<p>Channel delivery is separate from session targeting. The cron job still runs in
+an isolated cron session, then Moltis forwards the finished output to the
+requested channel destination.</p>
 <h2 id="session-targeting"><a class="header" href="#session-targeting">Session Targeting</a></h2>
 <p>Each job specifies where its agent turn runs:</p>
 <div class="table-wrapper"><table><thead><tr><th>Target</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>"main"</code></td><td>The main UI session (default)</td></tr>
-<tr><td><code>{ "channel": "&lt;name&gt;" }</code></td><td>A specific channel session</td></tr>
+<tr><td><code>"main"</code></td><td>Inject a <code>systemEvent</code> into the main session. Use this for reminders that should continue the main conversation.</td></tr>
+<tr><td><code>"isolated"</code></td><td>Run an <code>agentTurn</code> in a throwaway cron session. Use this for background jobs and channel delivery.</td></tr>
+<tr><td><code>named("&lt;name&gt;")</code></td><td>Internal/persistent cron session used by system jobs such as heartbeat. Not user-configurable through the <code>cron</code> tool.</td></tr>
 </tbody></table>
 </div>
 <h2 id="security-2"><a class="header" href="#security-2">Security</a></h2>
@@ -8447,6 +8500,10 @@ project-specific instructions override workspace-level ones.</p>
 <pre><code>Host: host=moltis-devbox | os=macos | arch=aarch64 | shell=zsh | time=2026-02-17 16:18:00 CET | today=2026-02-17 | provider=openai | model=gpt-5 | session=main | sudo_non_interactive=true | timezone=Europe/Paris
 Sandbox(exec): enabled=true | mode=all | backend=docker | scope=session | image=moltis-sandbox:abc123 | workspace_mount=ro | network=disabled
 </code></pre>
+<p>For channel-bound sessions, the host line also includes surface metadata so the
+LLM knows where it is operating, for example:</p>
+<pre><code class="language-text">Host: ... | session=telegram:bot-main:123456 | surface=telegram | session_kind=channel | channel_type=telegram | channel_account=bot-main | channel_chat_id=123456 | channel_chat_type=private
+</code></pre>
 <p>When tools are included, an <strong>Execution routing</strong> block explains how <code>exec</code>
 routes commands between sandbox and host.</p>
 <p>The runtime context is populated at request time in <code>chat.rs</code> by detecting:</p>
@@ -8454,6 +8511,8 @@ routes commands between sandbox and host.</p>
 <li>Host name, OS, architecture, shell</li>
 <li>Active LLM provider and model</li>
 <li>Session key</li>
+<li>Runtime surface and session kind (<code>web</code>, <code>channel</code>, <code>cron</code>, <code>heartbeat</code>)</li>
+<li>Channel binding metadata (<code>channel_type</code>, <code>channel_account</code>, <code>channel_chat_id</code>, <code>channel_chat_type</code>) when available</li>
 <li>Sudo availability</li>
 <li>Timezone and accept-language from the browser</li>
 <li>Geolocation (from browser or <code>USER.md</code>)</li>

@@ -1,0 +1,13 @@
+If it possible to write a test only for windows, do it, otherwise skip it 
+
+then proceed to create a PR for this issue. Feel free to fork the repo for me 
+
+Remember to follow their (moltis) convention for creating PR (if any)
+
+The PR should clearly mention the root cause, reference issue from rust and how to mitigate it. 
+
+Also explain the consideration (use Seek in linux for example)
+
+---
+
+Hey, why there are two tests ? Keep only the relevant one please

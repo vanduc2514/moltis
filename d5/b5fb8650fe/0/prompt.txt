@@ -11,3 +11,11 @@ Also explain the consideration (use Seek in linux for example)
 ---
 
 Hey, why there are two tests ? Keep only the relevant one please
+
+---
+
+Hey update the PR to remove the test for windows. I decided not to include it in the PR . 
+
+Also complete the other two remaining locally (strip out the local-llm option) please
+
+Then build a windows binary, I want to test it on my system (omit the check for manual verification on windows host, I will check it myself)

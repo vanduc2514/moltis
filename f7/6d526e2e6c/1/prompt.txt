@@ -1,0 +1,19 @@
+Check the release action, research online, and check if windows-latest is a valid runner provide by github ?
+
+---
+
+About the clippy action, it saying it is self hosted, what does this mean ? Can I run this with github provider ?
+
+---
+
+DO I really need this clippy ? And is there a way that I can run this step using github provided runner ?
+
+---
+
+Create a safe change that switches clippy to runs-on: ubuntu-22.04, removes the CUDA container, and installs the same apt deps — and adjust the cargo clippy invocation to avoid GPU features so it runs on GitHub-hosted runners; or
+
+I want to do this since clippy is blocking the action. Doing this is safe ? What is the impact. Research throughly
+
+---
+
+Ok, push this change to the fork repo, and make sure to rebase this change onto the branch fix lock windows something

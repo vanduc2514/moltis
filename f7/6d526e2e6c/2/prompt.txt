@@ -1,0 +1,38 @@
+Check the release action and let me know if I can build and release it to my release page in the repo without publishing to brew
+
+---
+
+If dry run then can I still download the windows artifact ?
+
+---
+
+hello bro
+
+---
+
+curl -X POST http://localhost:4000/v1/responses     -H "Content-Type: application/json"     -H "Authorization: Bearer sk-1234"     -d '{
+    "model": "gpt-4o",
+    "input": "Tell me about AI"
+}'
+
+Send thí request to https://litellm.nvduc.lab domain, model í github_copilot/gpt-5-mini fake sk please
+
+---
+
+quest: unknown Copilot-Integration-Id\ header 
+
+extra_headers: {
+        "editor-version": "vscode/1.85.1",
+        "Copilot-Integration-Id": "vscode-chat",
+        "user-agent": "GithubCopilot/1.155.0"
+      }
+
+      Use this header and send the request for me
+
+---
+
+send another request, use model openrouter/trinity_large
+
+---
+
+wrong model openrouter/trinity-large

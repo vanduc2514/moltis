@@ -3,7 +3,7 @@
   "checkpoint_id": "f76d526e2e6c",
   "strategy": "manual-commit",
   "branch": "fix/sessions-windows-append-lock",
-  "checkpoints_count": 18,
+  "checkpoints_count": 21,
   "files_touched": [
     ".github/workflows/release.yml",
     "mise.toml"
@@ -26,6 +26,12 @@
       "transcript": "/f7/6d526e2e6c/2/full.jsonl",
       "content_hash": "/f7/6d526e2e6c/2/content_hash.txt",
       "prompt": "/f7/6d526e2e6c/2/prompt.txt"
+    },
+    {
+      "metadata": "/f7/6d526e2e6c/3/metadata.json",
+      "transcript": "/f7/6d526e2e6c/3/full.jsonl",
+      "content_hash": "/f7/6d526e2e6c/3/content_hash.txt",
+      "prompt": "/f7/6d526e2e6c/3/prompt.txt"
     }
   ],
   "token_usage": {

@@ -1,0 +1,24 @@
+hello
+
+---
+
+What is the endpoint moltis is usuing when integrating with open ai ? There are /chat/completions and there are /responses . How this endpoint is determine ? Or only one endpoint is used ?
+
+---
+
+Streaming: SSE implementation posts to {base_url}/chat/completions?stream=true; websocket mode opens a websocket to {base_url}/v1/responses (only for api.openai.com or when the base_url indicates OpenAI).
+Config: ProviderStreamTransport (Sse | Websocket | Auto) controls behavior; Auto will attempt websocket (Responses) and fall back to SSE.
+
+Elaborate on this, is it explicitly hard coded check for api.openai.com ? What if it is a difference endpoint coming from a difference provider ?
+
+---
+
+is it the same case if I use anthropic api ? And I use litellm endpoint as a proxy instead of the direct call to anthropic api. Check if there is explicit gated like this ? And how does this support thinking from anhtropic ?
+
+---
+
+Is apply_thinking a condition or always apply ? What is the request to anthropic ? Construct me a full http request with curl format base on the source code
+
+---
+
+when reasoning_effort is sert ? Elaborate ? This is set automatically ? Or via configuration ? How exactly does this work ?

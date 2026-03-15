@@ -1,0 +1,45 @@
+Check the latest release workflow in this repo and analyze the issue 
+
+In github please 
+
+In fork repo
+
+---
+
+Check the workflow status remotely using the mcp github tool
+
+---
+
+Check the fork repo please, use git local to see
+
+---
+
+Check the status, log of the recent workflow run in the fork repo instead of the main one
+
+---
+
+Analyze why it is failing and adapt the release action please, I need to build this moltis on the fork repo
+
+---
+
+NO, fix the action please, dont run anything on my local
+
+---
+
+Analyze why it is failing the root cause of it, why it is failing like that
+
+---
+
+use the github mcp tool to download the log please
+
+---
+
+use the github mcp tool to download the log of the runner and identify the root cayse why it is failing please
+
+---
+
+DO NOT CHANGE, WHat is the reason that make the workflow run fails ?
+
+---
+
+ok, then remove all erorr steps from the action, then push to fork repo, and rebase to the branch fix lock windows (find the name it in the local brnahc)

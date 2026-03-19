@@ -37,3 +37,7 @@ Then do a commit and use git to compare the resotered version againts the curren
 Then, sounds good, clone the current release workflow and replace create release with upload artifact for me 
 
 Rememeber, no additional comment please
+
+---
+
+Push the change and trigger the build and upload action for me

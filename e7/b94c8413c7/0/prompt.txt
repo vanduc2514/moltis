@@ -1,0 +1,6 @@
+this 
+
+      - name: Dry-run short-circuit
+        if: ${{ env.RELEASE_DRY_RUN == 'true' }}
+
+        Does not actually skip or short circuit for all jobs, check and fix, then commit

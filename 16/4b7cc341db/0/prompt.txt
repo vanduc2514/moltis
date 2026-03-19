@@ -1,0 +1,29 @@
+Is it possible to clone the build action into build and upload artifact action where I can publish the build artifact to a space without releasing it ?
+
+---
+
+without any external storage that cost me money ? Is it still possible ?
+
+---
+
+How can I download the github artifact ? Is there a page in Github UI for downloading it ?
+
+---
+
+Ok, sounds good, clone the current workflow and replace create release with upload artifact for me. Please upload all builds output as artifact please
+
+---
+
+remove the explaination comment for me
+
+---
+
+Is it ok now ? Do you need to implement anything ? Check to see if all things work out
+
+---
+
+Why you remove the download step ?
+
+---
+
+Ok, now restore the current release action to the version on main

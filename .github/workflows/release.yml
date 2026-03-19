@@ -149,7 +149,7 @@ jobs:
           ./scripts/download-tailwindcss-cli.sh tailwindcss-linux-x64
           cd crates/web/ui && TAILWINDCSS=../../../tailwindcss-linux-x64 ./build.sh
       - if: ${{ env.RELEASE_DRY_RUN != 'true' }}
-        run: cargo clippy -Z unstable-options --workspace --all-targets --timings -- -D warnings
+        run: cargo clippy -Z unstable-options --workspace --all-features --all-targets --timings -- -D warnings
 
   test:
     needs: [fmt, biome]
@@ -185,7 +185,6 @@ jobs:
     name: E2E Tests
     needs: [fmt, biome]
     runs-on: ubuntu-latest
-    continue-on-error: true
     permissions:
       contents: read
     steps:
@@ -939,7 +938,7 @@ jobs:
       - name: Configure Perl for vendored OpenSSL
         shell: pwsh
         run: |
-          $strawberryPerl = "C:\Strawberry\perl\bin\perl.exe"
+          $strawberryPerl = "C:\\Strawberry\\perl\\bin\\perl.exe"
           if (-not (Test-Path $strawberryPerl)) {
             Write-Error "Strawberry Perl not found at $strawberryPerl"
           }
@@ -1143,7 +1142,7 @@ jobs:
         run: |
           CURRENT="${GITHUB_REF_NAME}"
           LATEST=$(gh api "repos/${{ github.repository }}/tags" --paginate --jq '.[].name' \
-            | grep -E '^[0-9]{8}\.[0-9]{2}$' \
+            | grep -E '^[0-9]{8}\\.[0-9]{2}$' \
             | sort | tail -1)
           if [ "$CURRENT" = "$LATEST" ]; then
             echo "is_latest=true" >> "$GITHUB_OUTPUT"
@@ -1230,7 +1229,7 @@ jobs:
       - build-homebrew-binaries
       - build-macos-app
       - build-windows-exe
-    # if: startsWith(github.ref, 'refs/tags/') && !(github.event_name == 'workflow_dispatch' && inputs.dry_run)
+    if: startsWith(github.ref, 'refs/tags/') && !(github.event_name == 'workflow_dispatch' && inputs.dry_run)
     runs-on: ubuntu-latest
     name: Upload release assets
     permissions:

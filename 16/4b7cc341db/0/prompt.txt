@@ -27,3 +27,7 @@ Why you remove the download step ?
 ---
 
 Ok, now restore the current release action to the version on main
+
+---
+
+Then do a commit and use git to compare the resotered version againts the current verison on main

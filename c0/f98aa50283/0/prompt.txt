@@ -1,0 +1,5 @@
+review this workflow and let me know if it supports upload artifact already ? If yes then how ?
+
+---
+
+Then how can I download these artifacts ? ANd can it be trigger from a normal branch ?

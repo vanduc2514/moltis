@@ -1,0 +1,101 @@
+Is it possible to clone the build action into build and upload artifact action where I can publish the build artifact to a space without releasing it ?
+
+---
+
+without any external storage that cost me money ? Is it still possible ?
+
+---
+
+How can I download the github artifact ? Is there a page in Github UI for downloading it ?
+
+---
+
+Ok, sounds good, clone the current workflow and replace create release with upload artifact for me. Please upload all builds output as artifact please
+
+---
+
+remove the explaination comment for me
+
+---
+
+Is it ok now ? Do you need to implement anything ? Check to see if all things work out
+
+---
+
+Why you remove the download step ?
+
+---
+
+Ok, now restore the current release action to the version on main
+
+---
+
+Then do a commit and use git to compare the resotered version againts the current verison on main
+
+---
+
+Then, sounds good, clone the current release workflow and replace create release with upload artifact for me 
+
+Rememeber, no additional comment please
+
+---
+
+Push the change and trigger the build and upload action for me
+
+---
+
+you should push to fork
+
+---
+
+Then trigger the build and upload artifact action
+
+---
+
+omg, use the provided tool please
+
+---
+
+There is a tool to trigger run action ?
+
+---
+
+Use the github mcp tool please
+
+---
+
+Use the github mcp tool to trigger the workflow I mean
+
+---
+
+Use the github mcp tool to trigger the workflow I mean
+
+---
+
+Fix it, push, and rretrigger
+
+---
+
+Fix it, push, and rretrigger. DO NOT SIMPLYFY IT, it should mirror the release action + upload artifact step
+
+---
+
+Fix it, push, and rretrigger. DO NOT SIMPLYFY IT, 
+
+Issue is
+
+failed to run workflow: POST https://api.github.com/repos/vanduc2514/moltis/actions/workflows/build-and-upload.yml/dispatches: 422 Invalid Argument - failed to parse workflow: (Line: 348, Col: 9): Job 'upload-release' depends on unknown job 'build-rpm'., (Line: 349, Col: 9): Job 'upload-release' depends on unknown job 'build-arch'., (Line: 350, Col: 9): Job 'upload-release' depends on unknown job 'build-appimage'., (Line: 351, Col: 9): Job 'upload-release' depends on unknown job 'build-snap'., (Line: 352, Col: 9): Job 'upload-release' depends on unknown job 'build-homebrew-binaries'., (Line: 353, Col: 9): Job 'upload-release' depends on unknown job 'build-macos-app'., (Line: 354, Col: 9): Job 'upload-release' depends on unknown job 'build-windows-exe'., (Line: 395, Col: 9): Job 'generate-sbom' depends on job 'upload-release' which creates a cycle in the dependency graph., (Line: 396, Col: 9): Job 'generate-sbom' depends on unknown job 'merge-docker'., (Line: 445, Col: 9): Job 'update-homebrew-tap' depends on job 'upload-release' which creates a cycle in the dependency graph. []
+
+---
+
+Fix it, push, and rretrigger. DO NOT SIMPLYFY IT, 
+
+Issue is
+
+failed to run workflow: POST https://api.github.com/repos/vanduc2514/moltis/actions/workflows/build-and-upload.yml/dispatches: 422 Invalid Argument - failed to parse workflow: (Line: 348, Col: 9): Job 'upload-release' depends on unknown job 'build-rpm'., (Line: 349, Col: 9): Job 'upload-release' depends on unknown job 'build-arch'., (Line: 350, Col: 9): Job 'upload-release' depends on unknown job 'build-appimage'., (Line: 351, Col: 9): Job 'upload-release' depends on unknown job 'build-snap'., (Line: 352, Col: 9): Job 'upload-release' depends on unknown job 'build-homebrew-binaries'., (Line: 353, Col: 9): Job 'upload-release' depends on unknown job 'build-macos-app'., (Line: 354, Col: 9): Job 'upload-release' depends on unknown job 'build-windows-exe'., (Line: 395, Col: 9): Job 'generate-sbom' depends on job 'upload-release' which creates a cycle in the dependency graph., (Line: 396, Col: 9): Job 'generate-sbom' depends on unknown job 'merge-docker'., (Line: 445, Col: 9): Job 'update-homebrew-tap' depends on job 'upload-release' which creates a cycle in the dependency graph. []
+
+As a hint: the build and upload action is a clone of release action with upload release step
+
+---
+
+No, why you restore to the original ? The build and upload workflow should replace the release step with the upload artifact

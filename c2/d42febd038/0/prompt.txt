@@ -1,0 +1,25 @@
+I want to keep the existing jobs and steps but want to run all build jobs with dry run enable (still skip other jobs like test, biome, existing skip job) and so on 
+
+Then commit a fix, push, and trigger the action
+
+---
+
+It should maintain the build dependency as-is
+
+---
+
+why you need always() ? along side with the other condition already ? Is it needed ? 
+
+ANd please reformat the condition
+
+---
+
+Okay, now push the change, cancel the current work-flow, run with latest change (format )
+
+Then wait for 3 hours timeout  with interval 30 mins, check the status of the job, exit if its fail -> fix then cancel, commit, re-trigger, re wait
+
+Exit when the job is success
+
+---
+
+Hey, why I dont see any uploaded artifact ? Make the upload artifact available in dry run please, then trigger this change, wait or it to complete and make sure I have download artifact available then proceed to download windows exe msvc artifact to this (use gh if there is no mcp to download)
